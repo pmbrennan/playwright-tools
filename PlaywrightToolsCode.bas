@@ -1,14 +1,21 @@
 ' =====================================================================
 ' Playwright Tools
-' [2011-07-02]
+' [2021-07-22]
 '
 ' by Patrick M Brennan (pbrennan@gmail.com)
-' Copyright (C) 2011 Patrick M Brennan
+' Copyright (C) 2011-2021 Patrick M Brennan
 ' 
-' A simple package for OpenOffice, consisting of a document template 
+' This is a package for LibreOffice, consisting of a document template 
 ' and a set of macros intended to simplify the task of formatting
 ' stage plays, and to provide the playwright with an environment
-' which promotes rapid writing.
+' which promotes rapid writing. The package also provides an easy
+' means to highlight individual character lines and stage directions,
+' intended for use when printed scripts are prepared for readings or
+' productions.
+'
+' NOTE: This package can also be used, with minor modifications,
+' with OpenOffice (see the section called "USING THIS PACKAGE WITH
+' OPENOFFICE").
 '
 ' ********************************************************************
 ' This program is free software: you can redistribute it and/or modify
@@ -26,41 +33,57 @@
 ' <http://www.gnu.org/licenses/>.
 ' *********************************************************************
 '
-' THE PROBLEM:
+' THE PROBLEM
 '
-' Formatting a stage play is a nontrivial task. Time which is spent
-' fussing with character slugs and stage directions is time which
-' is more profitably spent thinking about the characters and writing
+' Formatting a stage play is a nontrivial task. Time spent fussing
+' with character slugs and stage directions is time which could be
+' more profitably spent thinking about the characters and writing
 ' good dialogue.
-'
+' 
 ' From talking to playwrights about their work process, I have come
-' to believe that many playwrights needlessly spend time writing
-' each character's entire name, every time the character has a line,
-' and then manually centering and capitalizing it, before actually 
-' typing the line. This is not only an enormous waste of time, it
-' also breaks the flow of the dialogue in the playwright's head, and
-' may therefore actually impact the quality of the work.
+' to believe that many playwrights needlessly spend time doing
+' rather pointless mechanical work: writing each character's entire
+' name, every time the character has a line, and then manually
+' centering and capitalizing it, before actually typing the
+' line. This is not only an enormous waste of time, it also breaks
+' the flow of the dialogue in the playwright's head, and may
+' therefore actually impact the quality of the work.
+'
+' Good writing is about emotions, and it's hard to get that right
+' if you're concerned with the minutiae of stage formatting.
+' Fortunately, computers are really good at handling that kind of
+' thing, leaving you free to write!
+'
+' Although it's true that there are specialized software packages
+' which, at least to some extent, automate this drudgery, a
+' surprisingly large proportion of playwrights do not use these
+' packages, preferring instead to stick to less expensive, or less
+' specialized options.
 '
 ' This package allows a playwright to quickly write and annotate plain
 ' text with a few easy to type tags, which are subsequently transformed
 ' into proper stageplay format. 
 '
-' THE BENEFITS OF USING THIS PACKAGE:
+' THE BENEFITS OF USING THIS PACKAGE
 '
 ' 1. You can write faster, since you are typing fewer letters.
+'
 ' 2. You can write with better "flow", since you are not interrupting
 '    your writing to fiddle with formatting.
+'
 ' 3. You can easily import text from multiple sources and quickly
 '    format it into your script.
+'
 ' 4. You can easily export text from stageplay format to plain text.
 ' 
-' HOW TO USE THIS PACKAGE:
+' HOW TO USE THIS PACKAGE
 ' 
 ' You're a playwright. You want to write a script.
+'
 ' You want your script to be formatted so that your lines look like 
 ' this:
 '
-'                     JOSEPH:
+'                     JOSEPH
 '     This is my line. I am saying my line now.
 '
 ' But you don't want to spend all your writing time typing names
@@ -72,11 +95,11 @@
 '
 ' /j/ This is my line. I am saying my line now.
 '
-' Now press "ApplyFormatting" when you want to transform your text.
-' The code will notice new tags (which you haven't previously 
-' associated with slugs) and ask you to supply the proper slug
-' (JOSEPH in this example.) It will then save the tag/slug pair
-' in a file called tags.txt in the same folder as your document,
+' Now press the "ApplyFormatting" button when you want to transform
+' your text. The code will notice new tags (which you haven't
+' previously associated with slugs) and ask you to supply the proper
+' slug (JOSEPH in this example.) It will then save the tag/slug pair
+' in a file called "tags.txt" in the same folder as your document,
 ' and then apply the formatting. Presto! All your lines are 
 ' formatted into proper stageplay style.
 '
@@ -86,7 +109,7 @@
 ' You may also press "StripFormatting" to revert the script to tagged
 ' format at any time.
 '
-' There are 5 types of styles which are handled :
+' There are 5 types of styles which are handled by this script:
 '
 ' 1. CHARACTER LINES, which consist of a tag identifying the
 '    speaker, followed by the words to be spoken. 
@@ -94,9 +117,9 @@
 '
 '        /a/ Hello, world!
 '
-'    will be formatted as:
+'    will be formatted as (e.g.):
 '
-'                    AMBROSE:
+'                    AMBROSE
 '    Hello, world!
 '
 '    Character lines are indicated by surrounding a custom character
@@ -111,7 +134,7 @@
 '
 '    will be formatted as
 '
-'                    AMBROSE:
+'                    AMBROSE
 '                    (Slyly)
 '    Hello, world!
 '
@@ -127,7 +150,7 @@
 '
 '    will be formatted as
 '
-'                    AMBROSE:
+'                    AMBROSE
 '    Hey there! (Winks) Come on over!
 '
 '    The inline stage directions will be italicized.
@@ -136,7 +159,7 @@
 '    block of stage directions.
 '    Example: the line
 '
-'    ## AT RISE: The stage is dark.. The sounds of thunder and 
+'    ## AT RISE: The stage is dark. The sounds of thunder and 
 '    lightning may be heard.
 '
 '    will be formatted as
@@ -159,10 +182,139 @@
 '
 '    will be formatted as 
 '
-'                    AMBROSE:
+'                    AMBROSE
 '    Hey there! Be bold! Draw a line! Italics?
 '
 '    with the appropriate sections decorated correctly.
+'
+' 6. CENTERED LINES, indicated by beginning the paragraph with @@.
+'
+' ************************************************************************
+'
+' HOW TO ENABLE THIS PACKAGE
+'
+' Before you can use this package for one of your scripts, you must
+' enable LibreOffice to run these macros. In order to do this, follow the
+' following steps:
+'
+' - Open LibreOffice.
+' - Open your LibreOffice Preferences
+'   - on Mac, it's LibreOffice > Preferences...
+' - Select LibreOffice > Security
+' - Press the "Macro Security..." button.
+' - Select a Security Level for running Macros. My recommendation is
+'   to set it at "Medium". This will make LibreOffice ask you if it's
+'   OK to run macros every time you open your script, which I don't mind
+'   doing.
+'
+' HOW TO USE THIS PACKAGE TO WRITE YOUR PLAYS
+'
+' Put a copy of this ODT file into its own directory. I recommned
+' you use a different directory for every new play, as I do.
+'
+' Let's say I want to start a new play called "When Mary Met Sally". I'll
+' start by creating a new folder called "When_Mary_Met_Sally". Then
+' I'll copy this file into the folder and rename it as "MarySally.odt".
+' Now when I open it up in LibreOffice, LibreOffice will ask me if it's
+' OK to run macros and I'll click "Enable Macros". Now it's time to write.
+'
+' I'll write a few lines:
+'
+'   /m/ Hi, I'm Mary.
+'
+'   /s/ Hey Mary, I'm Sally.
+'
+'   /m/ Nice to meet you!
+'
+' And then I'll hit "ApplyFormatting". A dialog box will appear, saying,
+' "I found an unknown tag '/m/'. Would you like to replace it?". I'll
+' hit "Yes" and in the next dialog, I'll enter "Mary".
+'
+' Another dialog box will now appear saying, "I found an unknown tag '/s/'.
+' Would you like to replace it?" I'll hit "Yes" and in the next dialog, I'll
+' enter "Sally".
+'
+' Now my script will look like this:
+'
+'                                       MARY
+'   Hi, I'm Mary.
+'
+'                                      SALLY
+' 
+'   Hey Mary, I'm Sally.
+'
+'
+'                                       MARY
+'   Nice to meet you!
+'
+' I can now continue to write, using the /m/ and /s/ tags as I wish,
+' and every once in a while, when I want to see everything nicely
+' formatted, I can press the "ApplyFormatting" button. Since LibreOffice
+' already knows about /m/ and /s/ at this point, you won't be asked to
+' supply the character names any more. And you'll notice there's a new file
+' in your folder, called tags.txt, which looks like this (you'll need to
+' open it up in a text editor):
+'
+' MARY,m
+' SALLY,s
+'
+' This is so that the next time you open your file, you won't need
+' to supply these names again.
+'
+' HOW TO USE THIS PACKAGE TO HIGHLIGHT YOUR SCRIPTS
+'
+' Another common task this package addresses is automatic highlighting.
+' I find I spend a large amount of time preparing hardcopy scripts for
+' script readings by manually marking each character's lines with a
+' highlighter pen. In order to speed this up, I wrote a function to
+' perform automatic highlighting. Here's how you use it.
+'
+' 1. Once you've applied your formatting, hit the "HighlightOptions"
+'    button.
+'
+' 2. You'll be presented with a dialog which has three options:
+'    - Remove All Highlights
+'    - Highlight Stage Directions
+'    - Highlight One Character's Lines
+'
+' 3. If you choose to highlight one character's lines, you will then
+'    need to select the characters whose lines you wish to highlight.
+'
+' Therefore, to prepare for a reading, I will open my script, highlight
+' the stage directions, and print. Then I will highlight one character's
+' lines and print. I will repeat that step, highlighting each character's
+' lines in turn, printing the script, until I have one copy for each
+' character and a copy for stage directions. The highlight color is
+' hardcoded as yellow, but if you look in the source code for
+' "RGB(255,255,0)" (Yellow), you can change it to suit your own needs.
+'
+' ************************************************************************
+'
+' USING THIS PACKAGE WITH OPENOFFICE
+'
+' This package was originally designed to work with OpenOffice, but
+' has since been modified to work only with LibreOffice, since
+' LibreOffice is now the standard FOSS office package going forward.
+' If, for some reason, you need to continue to use OpenOffice but
+' you want to use this package, it's reasonably easy to modify so that
+' you can do so. You can open this code up in your OpenOffice macro
+' editor:
+'
+' - Menu item Tools > Macros > Organize Macros > LibreOffice BASIC...
+' - Select "Macro From:" and click to expand your document.
+' - click to expand "Standard" and then "Module1".
+' - click on "Edit". This will open an editor window into this
+'   package.
+' - Now select Edit > Find & Replace...
+' - Replace each instance of "Default Paragraph Style" (INCLUDE THE QUOTATION
+'   MARKS!) with "Default" (AGAIN, INCLUDE THE QUOTATION MARKS!)
+'   - This is because OpenOffice calls its default paragraph style
+'     "Default", and LibreOffice calls it "Default Paragraph Style".
+' - Save your work.
+' - You can test by "round-tripping" a script text. If you start with
+'   a file which is in tagged format and apply styling, then remove it,
+'   you should end up with the same text. If the macro crashes with
+'   an error message, you will know you have missed something.
 '
 ' =====================================================================
 ' =====================================================================
@@ -170,33 +322,45 @@
 ' Still TODO:
 '
 ' 1. Complete documentation of these functions.
-' 2. Put the style names into the global tables rather than
+'
+' 2. Add more documentation from the LibreOffice wiki. Currently
+'    there are a lot of references to the OpenOffice wiki, but
+'    this support is now officially deprected.
+'
+' 3. Put the style names into the global tables rather than
 '    sprinkling them into the functions.
-' 3. Add support to create the proper styles all in code. Currently
+'
+' 4. Add support to create the proper styles all in code. Currently
 '    these are:
 '    CHARACTERNAME
 '    LINE
 '    STAGE_DIRECTION_BLOCK
 '    STAGE_DIRECTION_OVERLINE
 '    STAGE_DIRECTION_INLINE
-' 4. One button editing of the tags file.
+'
+' 5. One button editing of the tags file.
 '    e.g. launch a text editor
-' 5. Ability to pull up a dialog and enter a new slug/tag
+'
+' 6. Ability to pull up a dialog and enter a new slug/tag
 '    combination and have it entered into the table.
-' 6. Ability to delete a tags/slug combination.
-' 7. Add automatic save/restore of the selection to all the buttons,
+'
+' 7. Ability to delete a tags/slug combination.
+'
+' 8. Add automatic save/restore of the selection to all the buttons,
 '    so that the user's cursor isn't changed by the action of the
 '    macros.
-' 8. Tweak the speech-break algorithm to favor breaking the speech
+'
+' 9. Tweak the speech-break algorithm to favor breaking the speech
 '    up at blank lines.
 '
 ' =====================================================================
 ' =====================================================================
 '
-' DONE
+' COMPLETED TASKS
 '
 ' 1. (DONE) Add support for overline directions, i.e. between the
 '    character slug and the character's line.
+'
 ' 2. (DONE) Add support for the user to specify the correspondence 
 '    between tags and slugs, rather than forcing the user 
 '    to do the mapping in this source file.
@@ -204,23 +368,34 @@
 '        BASIC_Guide/Files_and_Directories_(Runtime_Library)
 '    this will allow the user to write a text file specifying the
 '    mapping.
+'
 ' 3. (DONE) One-button mapping and unnmapping.
+'
 ' 4. (DONE) Replace all [[ and ]] in code with symbolic constants.
+'
 ' 5. (DONE) Add support for stage directions inside the character's line.
 '    After formatting, look for LINEs which have ( * ). Apply 
 '    STAGE_DIRECTION_INLINE to the block between the ()s. 
 '    Also perform the opposite transform.
+'
 ' 6. (DONE) Add ability to write the tags.txt file out.
+'
 ' 7. (DONE) Ability to detect new tags and interactively add these to the 
 '    table.
+'
 ' 8. (DONE) Ability to detect new slugs and interactively add these to the 
 '    table.
+'
 ' 9. (DONE) Ability to decorate text with *bold*, \italic\, and _underline_
 '    markup.
+'
 ' 10. (DONE) Ability to break up long speeches, with the correct (CONT'D)
 '     tag supplied on the top of the following page.
+'
 ' 11. (DONE) Ability to highlight any character's lines, or all stage
 '     directions, as a convenience function for printing.
+'
+' 12. (DONE) Migrate this package from OpenOffice to LibreOffice.
 '
 ' =====================================================================
 ' Global variables
@@ -230,6 +405,7 @@ Global NTags as Integer        ' How many tag/slug pairs are there?
 Global Tags  as Variant        ' Array of the character tags
 Global Slugs as Variant        ' Array of the character slugs
 Global StageDirsTag as Variant ' Tag for Stage Directions blocks
+Global CenteredLineTag as Variant ' Tag for centered paragraph
 Global OverlineDirsOpenTag as Variant ' Open tag for overline dirs
 Global OverlineDirsCloseTag as Variant ' Close tag for overline dirs
 Global BoldOpenTag as Variant ' Open tag for bold
@@ -494,7 +670,7 @@ Function ReadTagsAndSlugs as Boolean
           Line Input #FileNo, CurrentLine   
           If CurrentLine <> "" then
             InputList = Split ( CurrentLine )
-            Slug = UCase ( InputList(1) ) + ":"
+            Slug = UCase ( InputList(1) )
             Tag = "/" + InputList(2) + "/ "
             
             Tags ( Index ) = Tag
@@ -533,6 +709,7 @@ End Function
 ' e.g.
 ' KATRINA,k
 ' PAUL,p
+'
 Function WriteTagsAndSlugs as Boolean
 
     GlobalScope.BasicLibraries.loadLibrary("Tools")
@@ -570,7 +747,7 @@ Function WriteTagsAndSlugs as Boolean
     For Index = 1 to NTags
     
         Tag = Mid( Tags ( Index ), 2, Len ( Tags ( Index ) ) - 3 )
-        Slug = Left ( Slugs ( Index ), Len ( Slugs ( Index ) ) - 1 )
+        Slug = Left ( Slugs ( Index ), Len ( Slugs ( Index ) ) )
         
         'MsgBox ( "Tag = '" + Tag + "' Slug = '" + Slug + "'" )
         
@@ -620,7 +797,7 @@ End Function
 '
 ' Determine whether a slug already exists in the table.
 '
-' The slug must be in the format "XXXXX:"
+' The slug must be in the format "XXXXX"
 Function SlugExists ( Slug As String ) As Boolean
 
     Dim Index as Integer
@@ -707,14 +884,13 @@ Function FindUnknownTags
                                      "(or empty string to skip):" + _
                                      Chr(13) + Chr(10) + Chr(13) + Chr(10) + _
                                      "* Note: You do not need to " + _
-                                     "CAPITALIZE the slug or add ':' " + _
-                                     "to the end.", _
+                                     "CAPITALIZE the slug.", _
                                      "Enter new slug for tag " + _
                                      Cursor.String, "" )
                                      
                 If (NewSlug <> "") Then
                 
-                    NewSlug = UCase ( NewSlug ) + ":"
+                    NewSlug = UCase ( NewSlug )
                     NewTag = Cursor.String
                     
                     If ( SlugExists ( NewSlug ) ) Then
@@ -783,7 +959,7 @@ Function FindUnknownSlugs
     
     Dim SearchDesc As Object
     SearchDesc = Doc.createSearchDescriptor
-    SearchDesc.searchString = "^[a-zA-Z0-9_\- \#]{1,50}:$"
+    SearchDesc.searchString = "^[a-zA-Z0-9_\- \#]{1,50}$"
     SearchDesc.SearchBackwards = false
     SearchDesc.SearchRegularExpression = true
     SearchDesc.SearchCaseSensitive = true
@@ -915,6 +1091,7 @@ Sub InitTables
         ItalicCloseTag = "\"
         StrikethroughOpenTag = "-" ' Strikethrough
         StrikethroughCloseTag = "-"
+        CenteredLineTag = "@@ " ' Center this line
         
         NLinesPerPage = 46
             
@@ -940,7 +1117,7 @@ End Sub
 ' the target string must be all by itself on a paragraph.
 ' replace with the ReplaceString;
 ' Also collapse the hit paragraph and the following paragraph into
-' one paragraph and apply the default style to it.
+' one paragraph and apply the Default Paragraph Style to it.
 ' 
 ' The primary use of this method is to turn character-slug/line pairs 
 ' into single paragraphs wherein the line follows a character
@@ -972,7 +1149,7 @@ Sub ReplaceSlugWithTag ( TargetString as string, _
         Cursor.goRight(len(ReplaceString), false)
         Cursor.goRight(1, true)
         Cursor.setString("")
-        Cursor.ParaStyleName = "Default"
+        Cursor.ParaStyleName = "Default Paragraph Style"
         
         Cursor = Doc.FindNext(Cursor.End, SearchDesc)           
     Loop
@@ -983,7 +1160,7 @@ End Sub
 ' =====================================================================
 ' CollapseContdSlugs
 '
-' Find each instance of a slug ending in the string " (CONT'D):" 
+' Find each instance of a slug ending in the string " (CONT'D)" 
 ' Collapse the hit paragraph into the previous paragraph.
 ' 
 ' This method is used to remove slugs which are generated by
@@ -1001,7 +1178,7 @@ Sub CollapseContdSlugs (  )
     Dim SearchDesc As Object
     SearchDesc = Doc.createSearchDescriptor
     'SearchDesc.searchString = "^.* \(CONT\'D\):$"
-    SearchDesc.searchString = "^.*\(CONT'D\):$"
+    SearchDesc.searchString = "^.*\(CONT'D\)$"
     SearchDesc.SearchBackwards = false
     SearchDesc.SearchRegularExpression = true
     SearchDesc.SearchCaseSensitive = false
@@ -1142,6 +1319,74 @@ Sub CharacterTags
 End Sub
 
 ' =====================================================================
+' FormatCenteredText
+'
+Sub FormatCenteredText
+
+    Dim Doc As Object
+    Dim Cursor As Object
+    
+    InitTables
+    
+    Doc = ThisComponent
+    Cursor = Doc.Text.createTextCursor
+    
+    Dim SearchDesc As Object
+    SearchDesc = Doc.createSearchDescriptor
+    SearchDesc.searchString = "^" + CenteredLineTag
+    SearchDesc.SearchBackwards = false
+    SearchDesc.SearchRegularExpression = true
+    SearchDesc.SearchCaseSensitive = false
+    SearchDesc.SearchSimilarity = false
+    
+    Cursor = Doc.FindFirst(SearchDesc)
+    
+    Do Until IsNull(Cursor)
+        
+        Cursor.setString("")
+        
+        Cursor.collapseToStart()
+        
+        ' This code works but has undesirable side effects.
+        Cursor.ParaStyleName = "CENTERED_BLOCK"
+        
+        Cursor = Doc.FindNext(Cursor.End, SearchDesc)           
+    Loop
+End Sub
+
+' =====================================================================
+' UnformatCenteredText
+'
+Sub UnformatCenteredText
+
+    Dim Doc As Object
+    Dim Enum1 As Object
+    Dim TextElement As Object
+    
+    InitTables
+     
+    Doc = ThisComponent
+    Enum1 = Doc.Text.createEnumeration
+     
+    ' loop over all paragraphs
+    While Enum1.hasMoreElements
+      TextElement = Enum1.nextElement
+     
+      If TextElement.supportsService("com.sun.star.text.Paragraph") Then
+        
+        If (TextElement.ParaStyleName = "CENTERED_BLOCK") Then
+        	
+           TextElement.ParaStyleName = "Default Paragraph Style"       
+           TextElement.String = CenteredLineTag + TextElement.String  
+        
+        End If
+     
+      End If
+    Wend
+    
+End Sub
+
+' =====================================================================
 ' FormatStageDirectionBlocks
 '
 Sub FormatStageDirectionBlocks
@@ -1198,9 +1443,9 @@ Sub UnformatStageDirectionBlocks
       If TextElement.supportsService("com.sun.star.text.Paragraph") Then
         
         If (TextElement.ParaStyleName = "STAGE_DIRECTION_BLOCK") Then
-        
+        	
+            TextElement.ParaStyleName = "Default Paragraph Style"       
             TextElement.String = StageDirsTag + TextElement.String  
-            TextElement.ParaStyleName = "Default"       
         
         End If
      
@@ -1243,7 +1488,7 @@ Sub UnformatManualBlockDirections
                 ' LeftMargin
                 
                 TextElement.String = StageDirsTag + TextElement.String
-                TextElement.ParaStyleName = "Default"
+                TextElement.ParaStyleName = "Default Paragraph Style"
                 
             End If
         
@@ -1352,7 +1597,7 @@ Sub UnformatOverlineStageDirections
         Cursor.gotoEndOfParagraph(false)        
         Cursor.goRight(1, true)
         Cursor.setString("")
-        Cursor.ParaStyleName = "Default"
+        Cursor.ParaStyleName = "Default Paragraph Style"
         
         Cursor = Doc.FindNext(Cursor.End, SearchDesc)
                 
@@ -1364,6 +1609,7 @@ End Sub
 ' ApplyCharStyleToInlineStageDirections
 '
 Sub ApplyCharStyleToInlineStageDirections (inStyle as String)
+	On Error Resume Next
 
     Dim Doc As Object
     Dim Cursor As Object
@@ -1389,7 +1635,7 @@ Sub ApplyCharStyleToInlineStageDirections (inStyle as String)
         
         If ( (Cursor.ParaStyleName = "LINE") ) Then
         
-            Cursor.CharStyleName = inStyle
+        	Cursor.CharStyleName = inStyle
         
         End If
         
@@ -1414,7 +1660,7 @@ End Sub
 '
 Sub UnformatInlineStageDirections
 
-    ApplyCharStyleToInlineStageDirections ( "Default" )
+    ApplyCharStyleToInlineStageDirections ( "Default Paragraph Style" )
     
 End Sub
 
@@ -1700,6 +1946,7 @@ Sub ApplyFormatting
 
     End If    
     
+    FormatCenteredText
     FormatOverlineStageDirections   
     FormatStageDirectionBlocks
     FormatInlineStageDirections
@@ -1734,6 +1981,7 @@ Sub StripFormatting
     UnformatStageDirectionBlocks
     UnformatOverlineStageDirections
     UnformatManualBlockDirections
+    UnformatCenteredText
     CharacterTags
     
     Doc.CurrentController.Select(CurSelection)
@@ -1868,7 +2116,7 @@ End Function
 ' NOTE: TextCursor API is here: http://wiki.services.openoffice.org/wiki/Text_cursor
 '
 ' Notes for troubleshooting BreakupLongSpeeches:
-' 1. The LINE style is marked for OpenOffice to try to keep the 
+' 1. The LINE style is marked for LibreOffice to try to keep the 
 '    paragraph together, on the same page if possible, and keep it 
 '    with its preceding CHARACTERNAME paragraph. Therefore, extremely
 '    long speeches without paragraph breaks will initially appear on 
@@ -1876,7 +2124,7 @@ End Function
 '    on the preceding page. If you see this in your script,
 '    BreakUpLongSpeeches is a good macro to invoke.
 ' 2. The macro will leave speeches of less than 16 lines alone, 
-'    allowing OpenOffice to flow these on to another page and leaving
+'    allowing LibreOffice to flow these on to another page and leaving
 '    up to that many lines blank on your page.
 ' 3. The macro will also leave the speech alone if there are 8 or less
 '    lines remaining on your page when the speech begins. 
@@ -1985,13 +2233,13 @@ Sub BreakUpLongSpeeches
                 com.sun.star.text.ControlCharacter.PARAGRAPH_BREAK, False)
                 
             'TCursor.goRight(1, true)    
-            TCursor.ParaStyleName = "Default"
+            TCursor.ParaStyleName = "Default Paragraph Style"
             
             Doc.Text.insertControlCharacter(TCursor, _
                 com.sun.star.text.ControlCharacter.PARAGRAPH_BREAK, False)
                 
             TCursor.ParaStyleName = "CHARACTERNAME"
-            TCursor.SetString(CharacterName + " (CONT'D):")
+            TCursor.SetString(CharacterName + " (CONT'D)")
             TCursor.collapseToEnd()
             
             Doc.Text.insertControlCharacter(TCursor, _
@@ -2132,11 +2380,6 @@ Sub HighlightCharacterLines ( CharName as String )
             ' Get the character name from TextElement.String
             Slug = TextElement.String
 
-            ' Does it have a trailing ":" ?
-            If (Right(Slug,1) = ":") Then
-                Slug = Left(Slug, Len(Slug) - 1)
-            End If
-
             ' Does it have a trailing "(CONT'D)" ?
             If (Right(Slug,8) = "(CONT'D)") Then
                 Slug = Left(Slug, Len(Slug) - 8)
@@ -2212,12 +2455,9 @@ Sub HighlightOptions
     
     For I=0 to NTags
     	CharacterName = Slugs(I)
-    	If Right(CharacterName, 1) = ":" Then
-    		CharacterName = Left(CharacterName, Len(CharacterName) - 1)
-    	End If
     	CharacterList.AddItem(CharacterName, I)
     	If I = 0 Then
-    		CharacterList.SelectItem(CharacterName, True
+    		CharacterList.SelectItem(CharacterName, True)
     	End If
     Next I
     
@@ -2260,6 +2500,9 @@ Sub OnCharacterListChanged
 	OptionHighlightCharacter.State = True
 
 End Sub
+
+
+
 
 
 
