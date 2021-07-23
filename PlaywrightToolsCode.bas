@@ -2,6 +2,8 @@
 ' Playwright Tools
 ' [2021-07-22]
 '
+' GitHub: https://github.com/pmbrennan/playwright-tools
+'
 ' by Patrick M Brennan (pbrennan@gmail.com)
 ' Copyright (C) 2011-2021 Patrick M Brennan
 ' 
