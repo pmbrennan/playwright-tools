@@ -59,6 +59,10 @@ The script supports several types of formatting tags:
    Hello, world!
    ```
 
+   **IMPORTANT** : Add a space between the character tag and the line!
+   `/a/ Hello, world!` will format correctly.
+   `/a/Hello, world!` will NOT!
+
 2. **OVERLINE STAGE DIRECTIONS**: Place at the start of a line right after the character tag
    - Example: `/a/ [[Slyly]] Hello, world!` becomes:
    ```
@@ -86,7 +90,7 @@ The script supports several types of formatting tags:
    - `_underline_` for underlined text
    - `\italic\` for italic text
 
-6. **CENTERED LINES**: Begin a paragraph with `@@`
+6. **CENTERED LINES**: Begin a paragraph with `@@ ` **don't forget the trailing space!**
 
 ## Main Functions
 
