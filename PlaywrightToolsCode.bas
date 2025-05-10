@@ -1,11 +1,9 @@
 ' =====================================================================
 ' Playwright Tools
-' [2021-07-22]
-'
-' GitHub: https://github.com/pmbrennan/playwright-tools
+' [2025-05-09]
 '
 ' by Patrick M Brennan (pbrennan@gmail.com)
-' Copyright (C) 2011-2021 Patrick M Brennan
+' Copyright (C) 2011-2025 Patrick M Brennan
 ' 
 ' This is a package for LibreOffice, consisting of a document template 
 ' and a set of macros intended to simplify the task of formatting
@@ -14,10 +12,6 @@
 ' means to highlight individual character lines and stage directions,
 ' intended for use when printed scripts are prepared for readings or
 ' productions.
-'
-' NOTE: This package can also be used, with minor modifications,
-' with OpenOffice (see the section called "USING THIS PACKAGE WITH
-' OPENOFFICE").
 '
 ' ********************************************************************
 ' This program is free software: you can redistribute it and/or modify
@@ -39,7 +33,7 @@
 '
 ' Formatting a stage play is a nontrivial task. Time spent fussing
 ' with character slugs and stage directions is time which could be
-' more profitably spent thinking about the characters and writing
+' more profitably spent thinking about your characters and writing
 ' good dialogue.
 ' 
 ' From talking to playwrights about their work process, I have come
@@ -49,7 +43,10 @@
 ' centering and capitalizing it, before actually typing the
 ' line. This is not only an enormous waste of time, it also breaks
 ' the flow of the dialogue in the playwright's head, and may
-' therefore actually impact the quality of the work.
+' therefore actually impact the quality of the work. Automating 
+' the process by creating macros which type your character slug 
+' for you and center it eliminates some of the tedium, but we
+' can do better than that.
 '
 ' Good writing is about emotions, and it's hard to get that right
 ' if you're concerned with the minutiae of stage formatting.
@@ -161,7 +158,7 @@
 '    block of stage directions.
 '    Example: the line
 '
-'    ## AT RISE: The stage is dark. The sounds of thunder and 
+'    ## AT RISE: The stage is dark.. The sounds of thunder and 
 '    lightning may be heard.
 '
 '    will be formatted as
@@ -297,26 +294,9 @@
 ' This package was originally designed to work with OpenOffice, but
 ' has since been modified to work only with LibreOffice, since
 ' LibreOffice is now the standard FOSS office package going forward.
-' If, for some reason, you need to continue to use OpenOffice but
-' you want to use this package, it's reasonably easy to modify so that
-' you can do so. You can open this code up in your OpenOffice macro
-' editor:
-'
-' - Menu item Tools > Macros > Organize Macros > LibreOffice BASIC...
-' - Select "Macro From:" and click to expand your document.
-' - click to expand "Standard" and then "Module1".
-' - click on "Edit". This will open an editor window into this
-'   package.
-' - Now select Edit > Find & Replace...
-' - Replace each instance of "Default Paragraph Style" (INCLUDE THE QUOTATION
-'   MARKS!) with "Default" (AGAIN, INCLUDE THE QUOTATION MARKS!)
-'   - This is because OpenOffice calls its default paragraph style
-'     "Default", and LibreOffice calls it "Default Paragraph Style".
-' - Save your work.
-' - You can test by "round-tripping" a script text. If you start with
-'   a file which is in tagged format and apply styling, then remove it,
-'   you should end up with the same text. If the macro crashes with
-'   an error message, you will know you have missed something.
+' It is not backward-compatible with OpenOffice any more, but it
+' should not prove to be a very difficult project to adapt this package
+' for use with OpenOffice.
 '
 ' =====================================================================
 ' =====================================================================
@@ -419,6 +399,7 @@ Global ItalicCloseTag as Variant ' Close tag for italic
 Global StrikethroughOpenTag as Variant ' Open tag for strikethrough
 Global StrikethroughCloseTag as Variant ' Close tag for strikethrough
 Global NLinesPerPage as Integer
+Global DefaultStyleName as String ' The name for the default para style
 
 
 ' =====================================================================
@@ -847,7 +828,7 @@ Function FindUnknownTags
     Dim Changed As Boolean
     
     Changed = False
-    InitTables
+    InitTables()
     
     Doc = ThisComponent
     Cursor = Doc.Text.createTextCursor
@@ -954,7 +935,7 @@ Function FindUnknownSlugs
     Dim Changed As Boolean
     
     Changed = False
-    InitTables
+    InitTables()
     
     Doc = ThisComponent
     Cursor = Doc.Text.createTextCursor
@@ -1096,6 +1077,10 @@ Sub InitTables
         CenteredLineTag = "@@ " ' Center this line
         
         NLinesPerPage = 46
+        
+        Dim Doc As Object
+        Doc = ThisComponent
+        DefaultStyleName = GetDefaultStyleName(Doc)
             
         Initialized = 1
             
@@ -1104,12 +1089,71 @@ Sub InitTables
 End Sub 
 
 ' =====================================================================
+' GetDefaultStyleName
+'
+Function GetDefaultStyleName(Doc As Object) As String
+    Dim StyleFamilies As Object
+    Dim ParaStyles As Object
+    Dim StyleNames As Variant
+    Dim i As Integer
+    Dim CandidateNames As Variant
+    
+    ' Common names for default paragraph style in different language versions
+    CandidateNames = Array("Standard", "Default Style", "Default", "Normal", "Predeterminado", "Estándar", "Standard", "Par défaut", "Normale", "Standaard", "Padrão")
+    
+    ' Get the paragraph styles from the document
+    StyleFamilies = Doc.StyleFamilies
+    ParaStyles = StyleFamilies.getByName("ParagraphStyles")
+    StyleNames = ParaStyles.ElementNames
+    
+    ' First try the candidate names
+    For i = 0 To UBound(CandidateNames)
+        If HasElement(StyleNames, CandidateNames(i)) Then
+            GetDefaultStyleName = CandidateNames(i)
+            Exit Function
+        End If
+    Next i
+    
+    ' If we didn't find a match in the common names,
+    ' let's try to find the style that has no parent (which is usually the default style)
+    For i = 0 To UBound(StyleNames)
+        Dim Style As Object
+        Style = ParaStyles.getByName(StyleNames(i))
+        
+        ' Check if this style has no parent or if it's its own parent
+        ' This is often the case with the default style
+        If Style.isAutoUpdate Or (Style.ParentStyle = "" And Not Style.isUserDefined) Then
+            GetDefaultStyleName = StyleNames(i)
+            Exit Function
+        End If
+    Next i
+    
+    ' If all else fails, return an empty string
+    GetDefaultStyleName = ""
+End Function
+
+' =====================================================================
+' Helper function to check if an array contains a specific value
+Function HasElement(arr As Variant, value As String) As Boolean
+    Dim i As Integer
+    HasElement = False
+    
+    For i = LBound(arr) To UBound(arr)
+        If arr(i) = value Then
+            HasElement = True
+            Exit Function
+        End If
+    Next i
+End Function
+
+
+' =====================================================================
 ' Reload
 '
 ' Reset the tags/slugs table and reload.
 Sub Reload
     Initialized = 0
-    InitTables
+    InitTables()
 End Sub
 
 ' =====================================================================
@@ -1151,7 +1195,7 @@ Sub ReplaceSlugWithTag ( TargetString as string, _
         Cursor.goRight(len(ReplaceString), false)
         Cursor.goRight(1, true)
         Cursor.setString("")
-        Cursor.ParaStyleName = "Default Paragraph Style"
+        Cursor.ParaStyleName = DefaultStyleName
         
         Cursor = Doc.FindNext(Cursor.End, SearchDesc)           
     Loop
@@ -1328,7 +1372,7 @@ Sub FormatCenteredText
     Dim Doc As Object
     Dim Cursor As Object
     
-    InitTables
+    InitTables()
     
     Doc = ThisComponent
     Cursor = Doc.Text.createTextCursor
@@ -1365,7 +1409,7 @@ Sub UnformatCenteredText
     Dim Enum1 As Object
     Dim TextElement As Object
     
-    InitTables
+    InitTables()
      
     Doc = ThisComponent
     Enum1 = Doc.Text.createEnumeration
@@ -1378,7 +1422,7 @@ Sub UnformatCenteredText
         
         If (TextElement.ParaStyleName = "CENTERED_BLOCK") Then
         	
-           TextElement.ParaStyleName = "Default Paragraph Style"       
+           TextElement.ParaStyleName = DefaultStyleName       
            TextElement.String = CenteredLineTag + TextElement.String  
         
         End If
@@ -1396,7 +1440,7 @@ Sub FormatStageDirectionBlocks
     Dim Doc As Object
     Dim Cursor As Object
     
-    InitTables
+    InitTables()
     
     Doc = ThisComponent
     Cursor = Doc.Text.createTextCursor
@@ -1433,7 +1477,7 @@ Sub UnformatStageDirectionBlocks
     Dim Enum1 As Object
     Dim TextElement As Object
     
-    InitTables
+    InitTables()
      
     Doc = ThisComponent
     Enum1 = Doc.Text.createEnumeration
@@ -1446,7 +1490,7 @@ Sub UnformatStageDirectionBlocks
         
         If (TextElement.ParaStyleName = "STAGE_DIRECTION_BLOCK") Then
         	
-            TextElement.ParaStyleName = "Default Paragraph Style"       
+            TextElement.ParaStyleName = DefaultStyleName       
             TextElement.String = StageDirsTag + TextElement.String  
         
         End If
@@ -1469,7 +1513,7 @@ Sub UnformatManualBlockDirections
     Dim Enum As Object
     Dim TextElement As Object
     
-    InitTables
+    InitTables()
  
     Doc = ThisComponent
     Enum = Doc.Text.createEnumeration
@@ -1490,7 +1534,7 @@ Sub UnformatManualBlockDirections
                 ' LeftMargin
                 
                 TextElement.String = StageDirsTag + TextElement.String
-                TextElement.ParaStyleName = "Default Paragraph Style"
+                TextElement.ParaStyleName = DefaultStyleName
                 
             End If
         
@@ -1507,7 +1551,7 @@ Sub FormatOverlineStageDirections
     Dim Doc As Object
     Dim Cursor As Object
     
-    InitTables
+    InitTables()
     
     Doc = ThisComponent
     Cursor = Doc.Text.createTextCursor
@@ -1574,7 +1618,7 @@ Sub UnformatOverlineStageDirections
     Dim Doc As Object
     Dim Cursor As Object
     
-    InitTables
+    InitTables()
     
     Doc = ThisComponent
     Cursor = Doc.Text.createTextCursor
@@ -1599,7 +1643,7 @@ Sub UnformatOverlineStageDirections
         Cursor.gotoEndOfParagraph(false)        
         Cursor.goRight(1, true)
         Cursor.setString("")
-        Cursor.ParaStyleName = "Default Paragraph Style"
+        Cursor.ParaStyleName = DefaultStyleName
         
         Cursor = Doc.FindNext(Cursor.End, SearchDesc)
                 
@@ -1617,7 +1661,7 @@ Sub ApplyCharStyleToInlineStageDirections (inStyle as String)
     Dim Cursor As Object
     Dim TextObj As Object
     
-    InitTables
+    InitTables()
     
     Doc = ThisComponent
     Cursor = Doc.Text.createTextCursor
@@ -1662,7 +1706,7 @@ End Sub
 '
 Sub UnformatInlineStageDirections
 
-    ApplyCharStyleToInlineStageDirections ( "Default Paragraph Style" )
+    ApplyCharStyleToInlineStageDirections ( DefaultStyleName )
     
 End Sub
 
@@ -1683,7 +1727,7 @@ Sub ApplyTextDecorationFromMarkup ( OpenTag as String, CloseTag as String, _
     Dim EndRange as Object
     Dim TextFormatCursor As Object
     
-    InitTables
+    InitTables()
     
     Doc = ThisComponent
     Cursor = Doc.Text.createTextCursor
@@ -1770,7 +1814,7 @@ End Sub
 '
 Sub ApplyBold
 
-    InitTables
+    InitTables()
     ApplyTextDecorationFromMarkup ( BoldOpenTag, BoldCloseTag, -1, -1, _
         com.sun.star.awt.FontWeight.BOLD, -1  )
 
@@ -1781,7 +1825,7 @@ End Sub
 '
 Sub ApplyUnderline
 
-    InitTables
+    InitTables()
     ApplyTextDecorationFromMarkup ( UnderlineOpenTag, UnderlineCloseTag, _
         -1, com.sun.star.awt.FontUnderline.SINGLE, -1, -1  )
 
@@ -1792,7 +1836,7 @@ End Sub
 '
 Sub ApplyItalic
 
-    InitTables
+    InitTables()
     ApplyTextDecorationFromMarkup ( ItalicOpenTag, ItalicCloseTag, _
         com.sun.star.awt.FontSlant.ITALIC, -1, -1, -1 )
         
@@ -1804,7 +1848,7 @@ End Sub
 ' TODO: Re-enable this when it is more robust.
 Sub ApplyStrikeout
 
-    InitTables
+    InitTables()
     ' ApplyTextDecorationFromMarkup ( StrikethroughOpenTag, _
     '    StrikethroughCloseTag, _
     '    -1, -1, -1, com.sun.star.awt.FontStrikeout.SINGLE )
@@ -1824,7 +1868,7 @@ Sub ReplaceTextDecorationWithMarkup(DoBold As Boolean, DoItalic As Boolean, _
     Dim MyText As String
     Dim TextLen As Integer
     
-    InitTables
+    InitTables()
     
     Dim NumberOfOptions As Integer
     Dim PageNum As Integer
@@ -2163,7 +2207,7 @@ Sub BreakUpLongSpeeches
     Dim LinesLeftOnPage As Integer
     Dim Trace As String
     
-    InitTables
+    InitTables()
     CollapseContdSlugs
      
     Doc = ThisComponent
@@ -2235,7 +2279,7 @@ Sub BreakUpLongSpeeches
                 com.sun.star.text.ControlCharacter.PARAGRAPH_BREAK, False)
                 
             'TCursor.goRight(1, true)    
-            TCursor.ParaStyleName = "Default Paragraph Style"
+            TCursor.ParaStyleName = DefaultStyleName
             
             Doc.Text.insertControlCharacter(TCursor, _
                 com.sun.star.text.ControlCharacter.PARAGRAPH_BREAK, False)
@@ -2282,7 +2326,7 @@ Sub UnhighlightEverything
     Dim Enum As Object
     Dim TextElement As Object
     
-    InitTables
+    InitTables()
  
     Doc = ThisComponent
     Enum = Doc.Text.createEnumeration
@@ -2313,7 +2357,7 @@ Sub HighlightBlockStageDirections
     Dim CurSelection As Object
     Dim AppliedColor As Long ' TODO: Turn this into a parameter
 
-    InitTables
+    InitTables()
     UnhighlightEverything
 
     Doc = ThisComponent
@@ -2362,7 +2406,7 @@ Sub HighlightCharacterLines ( CharName as String )
     Dim HighlightColor As Long
     Dim Slug As String
     
-    InitTables
+    InitTables()
 
     HighlightColor = RGB(255,255,0) ' Yellow
     InCharacterLine = False
@@ -2380,18 +2424,11 @@ Sub HighlightCharacterLines ( CharName as String )
         If (TextElement.ParaStyleName = "CHARACTERNAME") Then
         
             ' Get the character name from TextElement.String
-            Slug = TextElement.String
-
-            ' Does it have a trailing "(CONT'D)" ?
-            If (Right(Slug,8) = "(CONT'D)") Then
-                Slug = Left(Slug, Len(Slug) - 8)
-            End If
-
-            Slug = Trim(UCase(Slug))
+            Slug = Trim(UCase(TextElement.String))
 
             ' Check it against the expected character name
             ' If it matches, highlight. Otherwise, remove highlighting
-            If (UCase(CharName) = Slug) Then
+            If InStr(1, Slug, UCase(CharName)) Then
                 TextElement.CharBackColor = HighlightColor
                 InCharacterLine = True
             Else
@@ -2442,7 +2479,7 @@ Sub HighlightOptions
     Dim CharacterToHighlight As String
     Dim CharacterName As String
     
-    InitTables
+    InitTables()
     
    	DialogLibraries.LoadLibrary("Standard")
     Dlg = CreateUnoDialog(DialogLibraries.Standard.HighlightOptions)
